@@ -3,9 +3,11 @@
 #############      I've borrowed a function (serial_ports()) from a guy in stack overflow whome I can't remember his name, so I gave hime the copyrights of this function, thank you  ########
 
 
-import syss
+import sys
 import glob
 import serial
+
+from io import StringIO
 
 import Python_Coloring
 from PyQt5 import QtCore
@@ -69,6 +71,7 @@ class Signal(QObject):
 # Making text editor as A global variable (to solve the issue of being local to (self) in widget class)
 text = QTextEdit
 text2 = QTextEdit
+argsText = QLineEdit
 
 #
 #
@@ -175,6 +178,18 @@ class Widget(QWidget):
         # I defined a new splitter to seperate between the upper and lower sides of the window
         V_splitter = QSplitter(Qt.Vertical)
         V_splitter.addWidget(H_splitter)
+        labelForArgs = QLabel(self)
+        labelForArgs.setText("Enter the parameters needed for the function written above and separated by (,).")
+        V_splitter.addWidget(labelForArgs)
+        global argsText
+        argsText = QLineEdit(self)
+        V_splitter.addWidget(argsText)
+
+        labelForOut = QLabel(self)
+        labelForOut.setText("Output")
+        V_splitter.addWidget(labelForOut)
+
+
         V_splitter.addWidget(text2)
 
         Final_Layout = QHBoxLayout(self)
@@ -227,6 +242,9 @@ def Openning(s):
     b = Signal()
     b.reading.connect(Widget.Open)
     b.reading.emit(s)
+
+
+        
 #
 #
 #
@@ -313,18 +331,41 @@ class UI(QMainWindow):
 
     ###########################        Start OF the Functions          ##################
     def Run(self):
-        if self.port_flag == 0:
-            mytext = text.toPlainText()
-        #
-        ##### Compiler Part
-        #
-#            ide.create_file(mytext)
-#            ide.upload_file(self.portNo)
-            text2.append("Sorry, there is no attached compiler.")
 
+        Exec_Code = text.toPlainText()
+        start_Index = Exec_Code.find("def ")
+
+        if start_Index >= 0:
+            Function_end = Exec_Code.find("(", start_Index)
+            Function_Name = Exec_Code[start_Index+4:Function_end]
+            Call_Function = "\n\n" + Function_Name + "("
+            argsProvided = argsText.text().split(',')
+            
+            for i in argsProvided:
+                Call_Function+= i + ","
+            Call_Function = Call_Function[0:len(Call_Function) - 1]
+            Call_Function += ')'
+            try:
+                Outputt = StringIO()
+                Errorr = StringIO()
+                sys.stdout = Outputt
+                sys.stderr = Errorr
+                text2.append(exec(Exec_Code + Call_Function))
+                text2.append(Outputt.getvalue())
+                text2.append(Errorr.getvalue())
+                # restore stdout and stderr
+                sys.stdout = sys.__stdout__
+                sys.stderr = sys.__stderr__
+                Outputt.close()
+                Errorr.close()
+            except:
+                text2.append("Wrong code, please enter an available one.")
         else:
-            text2.append("Please Select Your Port Number First")
-
+            text2.append("""
+            To write the functon it must be as this example:
+            def print(a):
+                print(a)
+            """)
 
     # this function is made to get which port was selected by the user
     @QtCore.pyqtSlot()
