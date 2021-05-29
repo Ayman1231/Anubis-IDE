@@ -360,13 +360,7 @@ class UI(QMainWindow):
                 Errorr.close()
             except:
                 text2.append("Wrong code, please enter an available one.")
-        else:
-            text2.append("""
-            To write the functon it must be as this example:
-            def print(a):
-                print(a)
-            """)
-
+                
     # this function is made to get which port was selected by the user
     @QtCore.pyqtSlot()
     def PortClicked(self):
