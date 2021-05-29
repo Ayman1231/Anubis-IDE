@@ -3,7 +3,7 @@
 #############      I've borrowed a function (serial_ports()) from a guy in stack overflow whome I can't remember his name, so I gave hime the copyrights of this function, thank you  ########
 
 
-import sys
+import syss
 import glob
 import serial
 
